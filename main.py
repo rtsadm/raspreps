@@ -11,7 +11,7 @@ bot = telebot.TeleBot(token)
 
 with open('citi es.json', encoding='utf-8') as f:
     cities = json.load(f)
-
+#іввфв
 bot.polling(none_stop=True)
 
 def geo_pos(city: str):
