@@ -1,18 +1,16 @@
-﻿import orjson
+﻿import json
 import telebot
 import requests as req
 from geopy import geocoders
-from os import environ
+#from os import environ
 
-token = environ['5165695941:AAH_-sdbx8r0i8J4WEVonuMnoxoOR6Fzz-0']
-token_openw = environ['90b61d79308e1b5d0424a2d187eb1c2c']
+token = '5165695941:AAH_-sdbx8r0i8J4WEVonuMnoxoOR6Fzz-0'
+token_openw = '90b61d79308e1b5d0424a2d187eb1c2c'
 
 bot = telebot.TeleBot(token)
 
-with open('citi es.json', encoding='utf-8') as f:
-    cities = orjson.load(f)
-
-bot.polling(none_stop=True)
+with open('cities.json', encoding='utf-8') as f:
+    cities = json.load(f)
 
 def geo_pos(city: str):
     geolocator = geocoders.Nominatim(user_agent="telebot")
@@ -21,16 +19,16 @@ def geo_pos(city: str):
     return latitude, longitude
 
 def code_location(latitude: str, longitude: str, token_openw: str):
-    url_location_key = f'pro.openweathermap.org/data/2.5/forecast/hourly?lat={latitude}&lon={longitude}&appid={"APIKey": token_openw}'
-    resp_loc = req.get(url_location_key, headers={"APIKey": token_openw})
-    json_data = orjson.loads(resp_loc.text)
+    url_location_key = f'http://pro.openweathermap.org/data/2.5/forecast/hourly?lat={latitude}&lon={longitude}&appid={token_openw}'
+    resp_loc = req.get(url_location_key, headers={token_openw})
+    json_data = json.loads(resp_loc.text)
     code = json_data['Key']
     return code
 
 def weather(code_loc: str, token_openw: str):
     url_weather = f'pro.openweathermap.org/data/2.5/forecast/hourly?id={code_loc}&appid={"APIkey": token_openw}'
     response = req.get(url_weather, headers={"APIKey": token_openw})
-    json_data = orjson.loads(response.text)
+    json_data = json.loads(response.text)
     dict_weather = dict()
     dict_weather['link'] = json_data[0]['list']['main']
     dict_weather['now'] = {'temp': json_data[0]['list']['main']['temp'], 'pressure': json_data[0]['list']['main']['pressure'], 'clouds': json_data[0]['list']['clouds']['all']}
@@ -64,12 +62,12 @@ def add_city(message):
         global cities
         cities[message.from_user.id] = message.text.lower().split('город ')[1]
         with open('cities.json', 'w') as f:
-            f.write(orjson.dumps(cities))
+            f.write(json.dumps(cities))
         return cities, 0
     except Exception as err:
         return cities, 1
 
-@bot.message_handler(command=['start', 'help'])
+@bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     bot.send_photo(message, photo='postimg.cc/njbDqqsW', caption=f' Привет! Я ботолег! Будем знакомы, {message.from_user.first_name}.')
 
@@ -110,3 +108,6 @@ def get_text_messages(message):
             bot.send_message(message.from_user.id, f'{message.from_user.first_name}! Ты шо шутки'
                                                    f' шутишь?  Я не нашел такого города! Наебсик!'
                                                    f'И получил ошибку {err}, попробуй другой город')
+
+
+bot.polling(none_stop=True)
