@@ -26,7 +26,7 @@ def code_location(latitude: str, longitude: str, token_openw: str):
     return code
 
 def weather(code_loc: str, token_openw: str):
-    url_weather = f'pro.openweathermap.org/data/2.5/forecast/hourly?id={code_loc}&appid={token_openw}'
+    url_weather = f'http://pro.openweathermap.org/data/2.5/forecast/hourly?id={code_loc}&appid={token_openw}'
     response = req.get(url_weather, headers={token_openw})
     json_data = json.loads(response.text)
     dict_weather = dict()
