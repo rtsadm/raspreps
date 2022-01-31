@@ -77,13 +77,13 @@ def get_text_messages(message):
     global cities
     if message.text.lower() == 'привет' or message.text.lower() == 'здорова':
         bot.send_message(message.from_user.id,
-                         f'О великий и могучий {message.from_user.first_name}! Позвольте Я доложу '
+                         f'Уважаемій {message.from_user.first_name}! Позвольте Я доложу '
                          f' Вам о погоде! Напишите  слово "погода" и я напишу погоду в Вашем'
                          f' "стандартном" городе или напишите название города в готором Вы сейчас')
     elif message.text.lower() == 'погода':
         if message.from_user.id in cities.keys():
             city = cities[message.from_user.id]
-            bot.send_message(message.from_user.id, f'О великий и могучий {message.from_user.first_name}!'
+            bot.send_message(message.from_user.id, f'Хорошо, {message.from_user.first_name}!'
                                                    f' Твой город {city}')
             latitude, longitude = geo_pos(city)
             code_loc = code_location(latitude, longitude, token_accu)
