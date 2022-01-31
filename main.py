@@ -1,5 +1,6 @@
 ﻿import json
 import telebot
+from telebot import types
 import requests as req
 from geopy import geocoders
 #from os import environ
@@ -70,7 +71,13 @@ def add_city(message):
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    bot.send_photo(message, photo='http://postimg.cc/njbDqqsW', caption=f' Привет! Я ботолег! Будем знакомы, {message.from_user.first_name}.')
+    markup = types.InlineKeyboardMarkup()
+    buttonA = types.InlineKeyboardButton('Привет', callback_data='a')
+    buttonB = types.InlineKeyboardButton('Здорова', callback_data='b')
+
+    markup.row(buttonA, buttonB)
+
+    bot.reply_to(message, f' Привет! Я ботолег! Будем знакомы, {message.from_user.first_name}.', reply_markup=markup)
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
