@@ -5,7 +5,7 @@ from geopy import geocoders
 #from os import environ
 
 token = '5165695941:AAH_-sdbx8r0i8J4WEVonuMnoxoOR6Fzz-0'
-token_openw = '90b61d79308e1b5d0424a2d187eb1c2c'
+token_accu = 'jIbE6Q7zEnOIqlnviLy0P9mYKVJd3e6Z'
 
 bot = telebot.TeleBot(token)
 
@@ -18,42 +18,43 @@ def geo_pos(city: str):
     longitude = str(geolocator.geocode(city).longitude)
     return latitude, longitude
 
-def code_location(latitude: str, longitude: str, token_openw: str):
-    url_location_key = f'http://pro.openweathermap.org/data/2.5/forecast/hourly?lat={latitude}&lon={longitude}&appid={token_openw}'
-    resp_loc = req.get(url_location_key, headers={token_openw})
+def code_location(latitude: str, longitude: str, token_accu: str):
+    url_location_key = f'http://dataservice.accuweather.com/locations/v1/cities/geoposition/search?apikey={token_accu}&q={latitude},{longitude}&language=ru'
+    resp_loc = req.get(url_location_key, headers={"APIKey": token_accu})
     json_data = json.loads(resp_loc.text)
     code = json_data['Key']
     return code
 
-def weather(code_loc: str, token_openw: str):
-    url_weather = f'http://pro.openweathermap.org/data/2.5/forecast/hourly?id={code_loc}&appid={token_openw}'
-    response = req.get(url_weather, headers={token_openw})
+def weather(cod_loc: str, token_accu: str):
+    url_weather = f'http://dataservice.accuweather.com/forecasts/v1/hourly/12hour/{cod_loc}?apikey={token_accu}&language=ru&metric=True'
+    response = req.get(url_weather, headers={"APIKey": token_accu})
     json_data = json.loads(response.text)
     dict_weather = dict()
-    dict_weather['link'] = json_data[0]['list']['main']
-    dict_weather['now'] = {'temp': json_data[0]['list']['main']['temp'], 'pressure': json_data[0]['list']['main']['pressure'], 'clouds': json_data[0]['list']['clouds']['all']}
-    for i in range(1,len(json_data)):
+    dict_weather['link'] = json_data[0]['MobileLink']
+    dict_weather['сейчас'] = {'temp': json_data[0]['Temperature']['Value'], 'sky': json_data[0]['IconPhrase']}
+    for i in range(1, len(json_data)):
         time = 'через' + str(i) + 'ч'
-        dict_weather[time] = {'temp': json_data[i]['list']['main']['temp'], 'pressure': json_data[i]['list']['main']['pressure'], 'clouds': json_data[i]['list']['clouds']['all']}
+        dict_weather[time] = {'temp': json_data[i]['Temperature']['Value'], 'sky': json_data[i]['IconPhrase']}
     return dict_weather
 
+
 def print_weather(dict_weather, message):
-    bot.send_message(message.from_user.id, f'Оперативная справка:'
-                                           f' Температура сейчас {dict_weather["now"]["temp"]}'
-                                           f' А небо затянуто облаками на {dict_weather["now"]["clouds"]}% '
+    bot.send_message(message.from_user.id, f'Оперативная сводка'
+                                           f' Температура сейчас {dict_weather["сейчас"]["temp"]}!'
+                                           f' А на небе {dict_weather["сейчас"]["sky"]}.'
                                            f' Температура через три часа {dict_weather["через3ч"]["temp"]}!'
-                                           f' А на небе {dict_weather["через3ч"]["clouds"]}%.'
+                                           f' А на небе {dict_weather["через3ч"]["sky"]}.'
                                            f' Температура через шесть часов {dict_weather["через6ч"]["temp"]}!'
-                                           f' А на небе {dict_weather["через6ч"]["clouds"]}%.'
+                                           f' А на небе {dict_weather["через6ч"]["sky"]}.'
                                            f' Температура через девять часов {dict_weather["через9ч"]["temp"]}!'
-                                           f' А на небе {dict_weather["через9ч"]["clouds"]}.')
-    bot.send_message(message.from_user.id, f' А здесь ссылка на подробности'
+                                           f' А на небе {dict_weather["через9ч"]["sky"]}.')
+    bot.send_message(message.from_user.id, f' А здесь ссылка на подробности '
                                            f'{dict_weather["link"]}')
 
 def big_weather(message, city):
     latitude, longitude = geo_pos(city)
-    cod_loc = code_location(latitude, longitude, token_openw)
-    you_weather = weather(cod_loc, token_openw)
+    cod_loc = code_location(latitude, longitude, token_accu)
+    you_weather = weather(cod_loc, token_accu)
     print_weather(you_weather, message)
 
 def add_city(message):
@@ -76,38 +77,43 @@ def get_text_messages(message):
     global cities
     if message.text.lower() == 'привет' or message.text.lower() == 'здорова':
         bot.send_message(message.from_user.id,
-                         f'Многоуважаемый {message.from_user.first_name}! Давайте Я расскажу '
+                         f'О великий и могучий {message.from_user.first_name}! Позвольте Я доложу '
                          f' Вам о погоде! Напишите  слово "погода" и я напишу погоду в Вашем'
-                         f' городе "по умолчанию" или напишите название города в котором Вы сейчас')
+                         f' "стандартном" городе или напишите название города в готором Вы сейчас')
     elif message.text.lower() == 'погода':
         if message.from_user.id in cities.keys():
             city = cities[message.from_user.id]
-            bot.send_message(message.from_user.id, f'Pozdravlyayudalbaeb {message.from_user.first_name}!'
+            bot.send_message(message.from_user.id, f'О великий и могучий {message.from_user.first_name}!'
                                                    f' Твой город {city}')
-            big_weather(message, city)
-
+            latitude, longitude = geo_pos(city)
+            code_loc = code_location(latitude, longitude, token_accu)
+            you_weather = weather(code_loc, token_accu)
+            print_weather(you_weather, message)
         else:
-            bot.send_message(message.from_user.id, f'Уважаемый {message.from_user.first_name}!'
+            bot.send_message(message.from_user.id, f'{message.from_user.first_name}!'
                                                    f' Я не знаю Ваш город! Просто напиши:'
                                                    f'"Мой город *****" и я запомню твой стандартный город!')
     elif message.text.lower()[:9] == 'мой город':
         cities, flag = add_city(message)
         if flag == 0:
-            bot.send_message(message.from_user.id, f'Molodecschusenek {message.from_user.first_name}!'
+            bot.send_message(message.from_user.id, f' {message.from_user.first_name}!'
                                                    f' Теперь я знаю Ваш город! это'
-                                                   f' {cities[str(message.from_user.id)]}')
+                                                   f' {cities[message.from_user.id]}')
         else:
-            bot.send_message(message.from_user.id, f'Sorryschusenek {message.from_user.first_name}!'
+            bot.send_message(message.from_user.id, f'{message.from_user.first_name}!'
                                                    f' Что то пошло не так :(')
     else:
         try:
             city = message.text
             bot.send_message(message.from_user.id, f'Привет {message.from_user.first_name}! Твой город {city}')
-            big_weather(message, city)
+            latitude, longitude = geo_pos(city)
+            code_loc = code_location(latitude, longitude, token_accu)
+            you_weather = weather(code_loc, token_accu)
+            print_weather(you_weather, message)
         except AttributeError as err:
-            bot.send_message(message.from_user.id, f'{message.from_user.first_name}! Ты шо шутки'
-                                                   f' шутишь?  Я не нашел такого города! Наебсик!'
-                                                   f'И получил ошибку {err}, попробуй другой город')
+            bot.send_message(message.from_user.id, f'{message.from_user.first_name}! Ошибка'
+                                                   f' К сожалению Я не нашел такого города!'
+                                                   f' Напиши по другому или попробуй другой город')
 
 
 bot.polling(none_stop=True)
