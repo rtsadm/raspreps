@@ -69,7 +69,7 @@ def add_city(message):
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    bot.send_photo(message, photo='postimg.cc/njbDqqsW', caption=f' Привет! Я ботолег! Будем знакомы, {message.from_user.first_name}.')
+    bot.send_photo(message, photo='http://postimg.cc/njbDqqsW', caption=f' Привет! Я ботолег! Будем знакомы, {message.from_user.first_name}.')
 
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
