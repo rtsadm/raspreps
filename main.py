@@ -72,8 +72,8 @@ def add_city(message):
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     markup = types.InlineKeyboardMarkup()
-    buttonA = types.InlineKeyboardButton('Привет', callback_data='a')
-    buttonB = types.InlineKeyboardButton('Здорова', callback_data='b')
+    buttonA = types.InlineKeyboardButton('Привет', callback_data='привет')
+    buttonB = types.InlineKeyboardButton('Здорова', callback_data='здорова')
 
     markup.row(buttonA, buttonB)
 
